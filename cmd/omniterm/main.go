@@ -93,7 +93,7 @@ func newTabMenu() *adw.SplitButton {
 	tabMenu := gio.NewMenu()
 	tabButton.SetMenuModel(tabMenu)
 	tabButton.Popover().SetPosition(gtk.PosBottom)
-	tabButton.Popover().SetHAlign(gtk.AlignStart)
+	//tabButton.Popover().SetHAlign(gtk.AlignStart)
 
 	// serial tab menu entry
 	serialTab := gio.NewMenuItem("New Serial", "win.new-serial")
@@ -125,14 +125,39 @@ func newHeaderBar() *adw.HeaderBar {
 }
 
 func activate(app *gtk.Application) {
+	window := newWindow(app)
+	window.Show()
+}
+
+func newTabBar() *adw.TabBar {
+	tabbar := adw.NewTabBar()
+	return tabbar
+}
+
+func newTabView() *adw.TabView {
+	tabview := adw.NewTabView()
+	tabview.SetVExpand(true)
+	q := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	b := gtk.NewButton()
+	b.SetHExpand(true)
+	q.Append(b)
+	tabview.AddPage(q, &adw.TabPage{})
+	return tabview
+}
+
+func newWindow(app *gtk.Application) *adw.Window {
+	window := adw.NewWindow()
+	window.SetApplication(app)
 
 	header := newHeaderBar()
-	box := gtk.NewBox(gtk.OrientationVertical, 12)
+	tabbar := newTabBar()
+	tabview := newTabView()
+	box := gtk.NewBox(gtk.OrientationVertical, 0)
+	box.Append(header)
+	box.Append(tabbar)
+	box.Append(tabview)
+	window.SetContent(box)
 
-	window := gtk.NewApplicationWindow(app)
-	window.SetChild(box)
-	//window.SetTitle("/dev/ttyUSB")
-	window.SetTitlebar(header)
 	window.SetDefaultSize(808, 550)
-	window.Show()
+	return window
 }
