@@ -28,83 +28,99 @@ func main() {
 	}
 }
 
+func newMainMenu() *gtk.MenuButton {
+	// main menu
+	mainMenu := gio.NewMenu()
+
+	// size control
+	sizeControl := gio.NewMenu()
+
+	// zoom out
+	zoomOut := gio.NewMenuItem("zoom-out", "win.zoom-out")
+	zoomOut.SetAttributeValue("verb-icon", glib.NewVariantString("zoom-out-symbolic"))
+	sizeControl.InsertItem(0, zoomOut)
+
+	// 100% size
+	normal := gio.NewMenuItem("100%", "win.zoom-normal")
+	sizeControl.InsertItem(1, normal)
+
+	// zoom in
+	zoomIn := gio.NewMenuItem("zoom-in", "win.zoom-in")
+	zoomIn.SetAttributeValue("verb-icon", glib.NewVariantString("zoom-in-symbolic"))
+	sizeControl.InsertItem(2, zoomIn)
+
+	// size control section
+	sizeSection := gio.NewMenuItemSection("", sizeControl)
+	sizeSection.SetAttributeValue("display-hint", glib.NewVariantString("horizontal-buttons"))
+	mainMenu.InsertItem(0, sizeSection)
+
+	// window control
+	windowControl := gio.NewMenu()
+
+	// New window menu entry
+	mWindow := gio.NewMenuItem("New Window", "app.new-window")
+	windowControl.InsertItem(0, mWindow)
+
+	// Fullscreen menu entry
+	mFullScreen := gio.NewMenuItem("Fullscreen", "window.fullscreen")
+	windowControl.InsertItem(1, mFullScreen)
+
+	windowSection := gio.NewMenuItemSection("", windowControl)
+	mainMenu.InsertItem(1, windowSection)
+
+	// Preferences menu entry
+	mPref := gio.NewMenuItem("Preferences", "app.preferences")
+	mainMenu.InsertItem(2, mPref)
+
+	// About menu entry
+	mAbout := gio.NewMenuItem("About", "app.about")
+	mainMenu.InsertItem(3, mAbout)
+
+	// menu button
+	mainButton := gtk.NewMenuButton()
+	mainButton.SetVAlign(gtk.AlignCenter)
+	mainButton.SetIconName("open-menu-symbolic")
+	mainButton.SetMenuModel(mainMenu)
+	return mainButton
+}
+
+func newTabMenu() *adw.SplitButton {
+	// tab button
+	tabButton := adw.NewSplitButton()
+	tabButton.SetIconName("tab-new-symbolic")
+
+	// tab split menu
+	tabMenu := gio.NewMenu()
+	tabButton.SetMenuModel(tabMenu)
+	tabButton.Popover().SetPosition(gtk.PosBottom)
+	tabButton.Popover().SetHAlign(gtk.AlignStart)
+
+	// serial tab menu entry
+	serialTab := gio.NewMenuItem("New Serial", "win.new-serial")
+	tabMenu.InsertItem(0, serialTab)
+
+	// ble tab menu entry
+	bleTab := gio.NewMenuItem("New Bluetooth", "win.new-ble")
+	tabMenu.InsertItem(1, bleTab)
+
+	return tabButton
+}
+
+func newSearchButton() *gtk.Button {
+	// search button
+	searchButton := gtk.NewButtonFromIconName("search-symbolic")
+	return searchButton
+}
+
 func newHeaderBar() *adw.HeaderBar {
 	header := adw.NewHeaderBar()
 	header.SetShowEndTitleButtons(true)
 
-	// tab button
-	tabButton := adw.NewSplitButton()
-	tabButton.SetIconName("tab-new-symbolic")
-	//tabMenu := gtk.NewBox(gtk.OrientationVertical, 6)
-	//pop := gtk.NewPopover()
-	//pop.SetChild(tabMenu)
-	//tabButton.SetPopover(pop)
-	tMenu := gio.NewMenu()
-	serTab := gio.NewMenuItem("New Serial", "window.new_tty")
-	bleTab := gio.NewMenuItem("New Bluetooth", "window.new_ble")
-	tMenu.InsertItem(0, serTab)
-	tMenu.InsertItem(1, bleTab)
-	tabButton.SetMenuModel(tMenu)
-	tabButton.Popover().SetPosition(gtk.PosBottom)
-	tabButton.Popover().SetHAlign(gtk.AlignStart)
+	header.PackStart(newTabMenu())
 
-	header.PackStart(tabButton)
+	header.PackEnd(newMainMenu())
 
-	// main menu button
-	mainMenu := gtk.NewPopover()
-	mainMenu.SetVisible(false)
-	// menuContent := gtk.NewBox(gtk.OrientationVertical, 0)
-
-	// ctrls := gtk.NewBox(gtk.OrientationHorizontal, 0)
-	// p := gtk.NewButtonFromIconName("value-increase-symbolic")
-	// v := gtk.NewButton()
-	// v.SetLabel("100%")
-	// m := gtk.NewButtonFromIconName("value-decrease-symbolic")
-	// ctrls.Append(m)
-	// ctrls.Append(v)
-	// ctrls.Append(p)
-	// menuContent.Append(ctrls)
-
-	a := gio.NewMenuItem("zoom-out", "app.about")
-	a.SetAttributeValue("verb-icon", glib.NewVariantString("zoom-out-symbolic"))
-	b := gio.NewMenuItem("100%", "app.about")
-	c := gio.NewMenuItem("zoom-in", "app.about")
-	c.SetAttributeValue("verb-icon", glib.NewVariantString("zoom-in-symbolic"))
-
-	abc := gio.NewMenu()
-	abc.InsertItem(0, a)
-	abc.InsertItem(1, b)
-	abc.InsertItem(2, c)
-	ms := gio.NewMenuItemSection("", abc)
-	ms.SetAttributeValue("display-hint", glib.NewVariantString("horizontal-buttons"))
-
-	mm := gio.NewMenu()
-
-	mm.InsertItem(0, ms)
-
-	// Preferences menu entry
-	mFullScreen := gio.NewMenuItem("Fullscreen", "window.fullscreen")
-	mm.InsertItem(1, mFullScreen)
-
-	// Preferences menu entry
-	mPref := gio.NewMenuItem("Preferences", "app.preferences")
-	mm.InsertItem(2, mPref)
-
-	// About menu entry
-	mAbout := gio.NewMenuItem("About", "app.about")
-	mm.InsertItem(3, mAbout)
-
-	//mainMenu.SetChild(menuContent)
-	mainButton := gtk.NewMenuButton()
-	mainButton.SetVAlign(gtk.AlignCenter)
-	mainButton.SetIconName("open-menu-symbolic")
-	//mainButton.SetPopover(mainMenu)
-	mainButton.SetMenuModel(mm)
-	header.PackEnd(mainButton)
-
-	// search button
-	searchButton := gtk.NewButtonFromIconName("search-symbolic")
-	header.PackEnd(searchButton)
+	header.PackEnd(newSearchButton())
 	return header
 }
 
@@ -115,7 +131,7 @@ func activate(app *gtk.Application) {
 
 	window := gtk.NewApplicationWindow(app)
 	window.SetChild(box)
-	//window.SetTitle("Adwaita Example")
+	//window.SetTitle("/dev/ttyUSB")
 	window.SetTitlebar(header)
 	window.SetDefaultSize(808, 550)
 	window.Show()
