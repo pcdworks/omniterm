@@ -19,6 +19,15 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
+type Terminal struct {
+	Application *gtk.Application
+	Windows     []*TerminalWindow
+}
+
+type TerminalWindow struct {
+	Window adw.Window
+}
+
 func main() {
 	app := gtk.NewApplication("com.pcdworks.omniterm", 0)
 	app.Connect("activate", activate)
@@ -137,12 +146,16 @@ func newTabBar() *adw.TabBar {
 func newTabView() *adw.TabView {
 	tabview := adw.NewTabView()
 	tabview.SetVExpand(true)
+
+	return tabview
+}
+
+func newTab(view *adw.TabView) {
 	q := gtk.NewBox(gtk.OrientationHorizontal, 0)
 	b := gtk.NewButton()
 	b.SetHExpand(true)
 	q.Append(b)
-	tabview.AddPage(q, &adw.TabPage{})
-	return tabview
+	view.AddPage(q, &adw.TabPage{})
 }
 
 func newWindow(app *gtk.Application) *adw.Window {
@@ -152,6 +165,10 @@ func newWindow(app *gtk.Application) *adw.Window {
 	header := newHeaderBar()
 	tabbar := newTabBar()
 	tabview := newTabView()
+	newTab(tabview)
+	newTab(tabview)
+	newTab(tabview)
+	tabbar.SetView(tabview)
 	box := gtk.NewBox(gtk.OrientationVertical, 0)
 	box.Append(header)
 	box.Append(tabbar)
