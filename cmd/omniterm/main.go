@@ -19,18 +19,57 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
-type Terminal struct {
-	Application *gtk.Application
-	Windows     []*TerminalWindow
+type TerminalApplication struct {
+	*gtk.Application
+	Windows []*TerminalWindow
 }
 
 type TerminalWindow struct {
-	Window adw.Window
+	*adw.Window
+	View           *adw.TabView
+	TabBar         *adw.TabBar
+	TabActionGroup *gio.ActionMap
+	Page           *adw.TabPage
+	HeaderBar      *adw.HeaderBar
+}
+
+func NewTerminalApplication() *TerminalApplication {
+	app := TerminalApplication{
+		Application: gtk.NewApplication("com.pcdworks.omniterm", 0),
+	}
+	app.Connect("activate", app.activate)
+	return &app
+}
+
+func (app *TerminalApplication) NewWindow() *TerminalWindow {
+	window := TerminalWindow{
+		Window:    adw.NewWindow(),
+		HeaderBar: newHeaderBar(),
+		TabBar:    newTabBar(),
+		View:      newTabView(),
+	}
+	window.SetApplication(app.Application)
+	window.SetTitle("OmniTerm")
+	window.TabBar.SetView(window.View)
+	box := gtk.NewBox(gtk.OrientationVertical, 0)
+	box.Append(window.HeaderBar)
+	box.Append(window.TabBar)
+	box.Append(window.View)
+	window.SetContent(box)
+
+	window.SetDefaultSize(808, 550)
+
+	window.NewTab()
+	window.NewTab()
+	window.NewTab()
+
+	return &window
 }
 
 func main() {
-	app := gtk.NewApplication("com.pcdworks.omniterm", 0)
-	app.Connect("activate", activate)
+	// app := gtk.NewApplication("com.pcdworks.omniterm", 0)
+	// app.Connect("activate", activate)
+	app := NewTerminalApplication()
 
 	if code := app.Run(os.Args); code > 0 {
 		os.Exit(code)
@@ -133,9 +172,9 @@ func newHeaderBar() *adw.HeaderBar {
 	return header
 }
 
-func activate(app *gtk.Application) {
-	window := newWindow(app)
-	window.Show()
+func (app *TerminalApplication) activate(self *gtk.Application) {
+	win := app.NewWindow()
+	win.Show()
 }
 
 func newTabBar() *adw.TabBar {
@@ -150,31 +189,9 @@ func newTabView() *adw.TabView {
 	return tabview
 }
 
-func newTab(view *adw.TabView) {
+func (window *TerminalWindow) NewTab() {
 	q := gtk.NewBox(gtk.OrientationHorizontal, 0)
-	b := gtk.NewButton()
-	b.SetHExpand(true)
-	q.Append(b)
-	view.AddPage(q, &adw.TabPage{})
-}
-
-func newWindow(app *gtk.Application) *adw.Window {
-	window := adw.NewWindow()
-	window.SetApplication(app)
-
-	header := newHeaderBar()
-	tabbar := newTabBar()
-	tabview := newTabView()
-	newTab(tabview)
-	newTab(tabview)
-	newTab(tabview)
-	tabbar.SetView(tabview)
-	box := gtk.NewBox(gtk.OrientationVertical, 0)
-	box.Append(header)
-	box.Append(tabbar)
-	box.Append(tabview)
-	window.SetContent(box)
-
-	window.SetDefaultSize(808, 550)
-	return window
+	// l := gtk.NewLabel(strconv.Itoa(time.Now().Nanosecond()))
+	// q.Append(l)
+	window.View.AddPage(q, &adw.TabPage{})
 }
