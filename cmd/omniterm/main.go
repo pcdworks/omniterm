@@ -44,39 +44,40 @@ func NewTerminalApplication() *TerminalApplication {
 func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	window := TerminalWindow{
 		Window:    adw.NewWindow(),
-		HeaderBar: newHeaderBar(),
-		TabBar:    newTabBar(),
-		View:      newTabView(),
+		HeaderBar: adw.NewHeaderBar(),
+		TabBar:    adw.NewTabBar(),
+		View:      adw.NewTabView(),
 	}
-	window.SetApplication(app.Application)
-	window.SetTitle("OmniTerm")
-	window.TabBar.SetView(window.View)
-	box := gtk.NewBox(gtk.OrientationVertical, 0)
-	box.Append(window.HeaderBar)
-	box.Append(window.TabBar)
-	box.Append(window.View)
-	window.SetContent(box)
 
-	window.SetDefaultSize(808, 550)
+	// ***************************
+	// Header bar
+	// ***************************
+	window.HeaderBar.SetShowEndTitleButtons(true)
 
-	window.NewTab()
-	window.NewTab()
+	// *************************************
+	// tab button
+	// *************************************
+	tabButton := adw.NewSplitButton()
+	tabButton.SetIconName("tab-new-symbolic")
 
-	return &window
-}
+	// tab split menu
+	tabMenu := gio.NewMenu()
+	tabButton.SetMenuModel(tabMenu)
+	tabButton.Popover().SetPosition(gtk.PosBottom)
+	//tabButton.Popover().SetHAlign(gtk.AlignStart)
 
-func main() {
-	// app := gtk.NewApplication("com.pcdworks.omniterm", 0)
-	// app.Connect("activate", activate)
-	app := NewTerminalApplication()
+	// serial tab menu entry
+	serialTab := gio.NewMenuItem("New Serial", "win.new-serial")
+	tabMenu.InsertItem(0, serialTab)
 
-	if code := app.Run(os.Args); code > 0 {
-		os.Exit(code)
-	}
-}
+	// ble tab menu entry
+	bleTab := gio.NewMenuItem("New Bluetooth", "win.new-ble")
+	tabMenu.InsertItem(1, bleTab)
+	window.HeaderBar.PackStart(tabButton)
 
-func newMainMenu() *gtk.MenuButton {
-	// main menu
+	// *************************************
+	// main menu button
+	// *************************************
 	mainMenu := gio.NewMenu()
 
 	// size control
@@ -128,47 +129,41 @@ func newMainMenu() *gtk.MenuButton {
 	mainButton.SetVAlign(gtk.AlignCenter)
 	mainButton.SetIconName("open-menu-symbolic")
 	mainButton.SetMenuModel(mainMenu)
-	return mainButton
-}
+	window.HeaderBar.PackEnd(mainButton)
 
-func newTabMenu() *adw.SplitButton {
-	// tab button
-	tabButton := adw.NewSplitButton()
-	tabButton.SetIconName("tab-new-symbolic")
-
-	// tab split menu
-	tabMenu := gio.NewMenu()
-	tabButton.SetMenuModel(tabMenu)
-	tabButton.Popover().SetPosition(gtk.PosBottom)
-	//tabButton.Popover().SetHAlign(gtk.AlignStart)
-
-	// serial tab menu entry
-	serialTab := gio.NewMenuItem("New Serial", "win.new-serial")
-	tabMenu.InsertItem(0, serialTab)
-
-	// ble tab menu entry
-	bleTab := gio.NewMenuItem("New Bluetooth", "win.new-ble")
-	tabMenu.InsertItem(1, bleTab)
-
-	return tabButton
-}
-
-func newSearchButton() *gtk.Button {
+	// **************************************
 	// search button
+	// **************************************
 	searchButton := gtk.NewButtonFromIconName("search-symbolic")
-	return searchButton
+	window.HeaderBar.PackEnd(searchButton)
+
+	// ***************************
+	// Window content
+	// ***************************
+	window.View.SetVExpand(true)
+	window.SetApplication(app.Application)
+	window.SetTitle("OmniTerm")
+	window.TabBar.SetView(window.View)
+	box := gtk.NewBox(gtk.OrientationVertical, 0)
+	box.Append(window.HeaderBar)
+	box.Append(window.TabBar)
+	box.Append(window.View)
+	window.SetContent(box)
+
+	window.SetDefaultSize(808, 550)
+
+	window.NewTab()
+	window.NewTab()
+
+	return &window
 }
 
-func newHeaderBar() *adw.HeaderBar {
-	header := adw.NewHeaderBar()
-	header.SetShowEndTitleButtons(true)
+func main() {
+	app := NewTerminalApplication()
 
-	header.PackStart(newTabMenu())
-
-	header.PackEnd(newMainMenu())
-
-	header.PackEnd(newSearchButton())
-	return header
+	if code := app.Run(os.Args); code > 0 {
+		os.Exit(code)
+	}
 }
 
 func (app *TerminalApplication) activate(self *gtk.Application) {
@@ -176,20 +171,12 @@ func (app *TerminalApplication) activate(self *gtk.Application) {
 	win.Show()
 }
 
-func newTabBar() *adw.TabBar {
-	tabbar := adw.NewTabBar()
-	return tabbar
-}
-
-func newTabView() *adw.TabView {
-	tabview := adw.NewTabView()
-	tabview.SetVExpand(true)
-
-	return tabview
-}
-
 func (window *TerminalWindow) NewTab() {
 	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	b := gtk.NewButtonFromIconName("search-symbolic")
+	b.SetVExpand(true)
+	b.SetHExpand(true)
+	content.Append(b)
 	tab := window.View.AddPage(content, &adw.TabPage{})
 	tab.SetTitle("/dev/ttyUSB0")
 	window.View.SetSelectedPage(tab)
