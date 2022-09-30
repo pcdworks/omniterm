@@ -61,7 +61,6 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 
 	window.NewTab()
 	window.NewTab()
-	window.NewTab()
 
 	return &window
 }
@@ -190,8 +189,8 @@ func newTabView() *adw.TabView {
 }
 
 func (window *TerminalWindow) NewTab() {
-	q := gtk.NewBox(gtk.OrientationHorizontal, 0)
-	// l := gtk.NewLabel(strconv.Itoa(time.Now().Nanosecond()))
-	// q.Append(l)
-	window.View.AddPage(q, &adw.TabPage{})
+	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	tab := window.View.AddPage(content, &adw.TabPage{})
+	tab.SetTitle("/dev/ttyUSB0")
+	window.View.SetSelectedPage(tab)
 }
