@@ -59,6 +59,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// *************************************
 	tabButton := adw.NewSplitButton()
 	tabButton.SetIconName("tab-new-symbolic")
+	tabButton.ConnectClicked(func() { window.NewTab() })
 
 	// tab split menu
 	tabMenu := gio.NewMenu()
@@ -137,10 +138,20 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	searchButton := gtk.NewButtonFromIconName("search-symbolic")
 	window.HeaderBar.PackEnd(searchButton)
 
+	// ***********************
+	// Tab context
+	// ***********************
+	tabContext := gio.NewMenu()
+
+	// Preferences menu entry
+	tabClose := gio.NewMenuItem("Close", "tab.close")
+	tabContext.InsertItem(1, tabClose)
+
 	// ***************************
 	// Window content
 	// ***************************
 	window.View.SetVExpand(true)
+	window.View.SetMenuModel(tabContext)
 	window.SetApplication(app.Application)
 	window.SetTitle("OmniTerm")
 	window.TabBar.SetView(window.View)
@@ -173,11 +184,10 @@ func (app *TerminalApplication) activate(self *gtk.Application) {
 
 func (window *TerminalWindow) NewTab() {
 	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
-	b := gtk.NewButtonFromIconName("search-symbolic")
-	b.SetVExpand(true)
-	b.SetHExpand(true)
-	content.Append(b)
 	tab := window.View.AddPage(content, &adw.TabPage{})
-	tab.SetTitle("/dev/ttyUSB0")
+	//tab.SetTitle("/dev/ttyUSB0")
+	//ico := gio.NewThemedIcon("bluetooth-symbolic")
+	ico := gio.NewThemedIcon("utilities-terminal-symbolic")
+	tab.SetIndicatorIcon(ico)
 	window.View.SetSelectedPage(tab)
 }
