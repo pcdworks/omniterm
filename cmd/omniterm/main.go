@@ -11,16 +11,19 @@ package main
  */
 
 import (
+	"context"
 	"os"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotkit/app"
+	"github.com/diamondburned/gotkit/gtkutil"
 )
 
 type TerminalApplication struct {
-	*gtk.Application
+	*app.Application
 	Windows []*TerminalWindow
 }
 
@@ -34,11 +37,11 @@ type TerminalWindow struct {
 }
 
 func NewTerminalApplication() *TerminalApplication {
-	app := TerminalApplication{
-		Application: gtk.NewApplication("com.pcdworks.omniterm", 0),
+	tapp := TerminalApplication{
+		Application: app.New(context.Background(), "com.pcdworks.omniterm", "omniterm"),
 	}
-	app.Connect("activate", app.activate)
-	return &app
+	tapp.Connect("activate", tapp.activate)
+	return &tapp
 }
 
 func (app *TerminalApplication) NewWindow() *TerminalWindow {
@@ -49,6 +52,14 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 		View:           adw.NewTabView(),
 		TabActionGroup: &gio.NewSimpleActionGroup().ActionMap,
 	}
+
+	// *********************
+	// Window actions
+	// *********************
+	gtkutil.BindActionMap(window, map[string]func(){
+		"win.new-serial-tab": func() { window.NewSerialTab() },
+		"win.new-ble-tab":    func() { window.NewBLETab() },
+	})
 
 	// ***************************
 	// Header bar
@@ -65,18 +76,10 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	})
 
 	// tab split menu
-	tabMenu := gio.NewMenu()
-	tabButton.SetMenuModel(tabMenu)
-	tabButton.Popover().SetPosition(gtk.PosBottom)
-	//tabButton.Popover().SetHAlign(gtk.AlignStart)
-
-	// serial tab menu entry
-	serialTab := gio.NewMenuItem("New Serial", "win.new-serial-tab")
-	tabMenu.InsertItem(0, serialTab)
-
-	// ble tab menu entry
-	bleTab := gio.NewMenuItem("New Bluetooth", "win.new-ble-tab")
-	tabMenu.InsertItem(1, bleTab)
+	tabButton.SetMenuModel(gtkutil.MenuPair([][2]string{
+		{"New Serial", "win.new-serial-tab"},
+		{"New Bluetooth", "win.new-ble-tab"},
+	}))
 	window.HeaderBar.PackStart(tabButton)
 
 	// *************************************
@@ -155,7 +158,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// ***************************
 	window.View.SetVExpand(true)
 	window.View.SetMenuModel(tabContext)
-	window.SetApplication(app.Application)
+	window.SetApplication(app.Application.Application)
 	window.SetTitle("OmniTerm")
 	window.TabBar.SetView(window.View)
 	box := gtk.NewBox(gtk.OrientationVertical, 0)
