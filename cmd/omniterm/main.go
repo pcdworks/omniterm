@@ -41,6 +41,9 @@ func NewTerminalApplication() *TerminalApplication {
 		Application: app.New(context.Background(), "com.pcdworks.omniterm", "omniterm"),
 	}
 	tapp.Connect("activate", tapp.activate)
+	tapp.AddActions(map[string]func(){
+		"app.new-window": func() { tapp.NewWindow().Show() },
+	})
 	return &tapp
 }
 
@@ -59,6 +62,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	gtkutil.BindActionMap(window, map[string]func(){
 		"win.new-serial-tab": func() { window.NewSerialTab() },
 		"win.new-ble-tab":    func() { window.NewBLETab() },
+		"win.fullscreen":     func() { window.FullscreenCB() },
 	})
 
 	// ***************************
@@ -117,7 +121,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	windowControl.InsertItem(0, mWindow)
 
 	// Fullscreen menu entry
-	mFullScreen := gio.NewMenuItem("Fullscreen", "window.fullscreen")
+	mFullScreen := gio.NewMenuItem("Fullscreen", "win.fullscreen")
 	windowControl.InsertItem(1, mFullScreen)
 
 	windowSection := gio.NewMenuItemSection("", windowControl)
@@ -144,20 +148,13 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	searchButton := gtk.NewButtonFromIconName("search-symbolic")
 	window.HeaderBar.PackEnd(searchButton)
 
-	// ***********************
-	// Tab context
-	// ***********************
-	tabContext := gio.NewMenu()
-
-	// Preferences menu entry
-	tabClose := gio.NewMenuItem("Close", "tab.close")
-	tabContext.InsertItem(1, tabClose)
-
 	// ***************************
 	// Window content
 	// ***************************
 	window.View.SetVExpand(true)
-	window.View.SetMenuModel(tabContext)
+	window.View.SetMenuModel(gtkutil.MenuPair([][2]string{
+		{"Close", "tab.close"},
+	}))
 	window.SetApplication(app.Application.Application)
 	window.SetTitle("OmniTerm")
 	window.TabBar.SetView(window.View)
@@ -185,6 +182,14 @@ func main() {
 func (app *TerminalApplication) activate(self *gtk.Application) {
 	win := app.NewWindow()
 	win.Show()
+}
+
+func (window *TerminalWindow) FullscreenCB() {
+	if window.IsFullscreen() {
+		window.Unfullscreen()
+	} else {
+		window.Fullscreen()
+	}
 }
 
 func (window *TerminalWindow) NewTab() {
