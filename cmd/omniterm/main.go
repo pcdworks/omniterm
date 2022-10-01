@@ -43,10 +43,11 @@ func NewTerminalApplication() *TerminalApplication {
 
 func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	window := TerminalWindow{
-		Window:    adw.NewWindow(),
-		HeaderBar: adw.NewHeaderBar(),
-		TabBar:    adw.NewTabBar(),
-		View:      adw.NewTabView(),
+		Window:         adw.NewWindow(),
+		HeaderBar:      adw.NewHeaderBar(),
+		TabBar:         adw.NewTabBar(),
+		View:           adw.NewTabView(),
+		TabActionGroup: &gio.NewSimpleActionGroup().ActionMap,
 	}
 
 	// ***************************
@@ -59,7 +60,9 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// *************************************
 	tabButton := adw.NewSplitButton()
 	tabButton.SetIconName("tab-new-symbolic")
-	tabButton.ConnectClicked(func() { window.NewTab() })
+	tabButton.ConnectClicked(func() {
+		window.NewTab()
+	})
 
 	// tab split menu
 	tabMenu := gio.NewMenu()
@@ -68,11 +71,11 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	//tabButton.Popover().SetHAlign(gtk.AlignStart)
 
 	// serial tab menu entry
-	serialTab := gio.NewMenuItem("New Serial", "win.new-serial")
+	serialTab := gio.NewMenuItem("New Serial", "win.new-serial-tab")
 	tabMenu.InsertItem(0, serialTab)
 
 	// ble tab menu entry
-	bleTab := gio.NewMenuItem("New Bluetooth", "win.new-ble")
+	bleTab := gio.NewMenuItem("New Bluetooth", "win.new-ble-tab")
 	tabMenu.InsertItem(1, bleTab)
 	window.HeaderBar.PackStart(tabButton)
 
@@ -164,7 +167,6 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	window.SetDefaultSize(808, 550)
 
 	window.NewTab()
-	window.NewTab()
 
 	return &window
 }
@@ -183,11 +185,32 @@ func (app *TerminalApplication) activate(self *gtk.Application) {
 }
 
 func (window *TerminalWindow) NewTab() {
+	pageType := "utilities-terminal-symbolic"
+	if window.View.SelectedPage() != nil {
+		pageType = window.View.SelectedPage().IndicatorIcon().String()
+	}
+
+	if pageType == "bluetooth-symbolic" {
+		window.NewBLETab()
+	} else if pageType == "utilities-terminal-symbolic" {
+		window.NewSerialTab()
+	}
+}
+
+func (window *TerminalWindow) NewSerialTab() {
 	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
 	tab := window.View.AddPage(content, &adw.TabPage{})
 	//tab.SetTitle("/dev/ttyUSB0")
-	//ico := gio.NewThemedIcon("bluetooth-symbolic")
 	ico := gio.NewThemedIcon("utilities-terminal-symbolic")
+	tab.SetIndicatorIcon(ico)
+	window.View.SetSelectedPage(tab)
+}
+
+func (window *TerminalWindow) NewBLETab() {
+	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	tab := window.View.AddPage(content, &adw.TabPage{})
+	//tab.SetTitle("/dev/ttyUSB0")
+	ico := gio.NewThemedIcon("bluetooth-symbolic")
 	tab.SetIndicatorIcon(ico)
 	window.View.SetSelectedPage(tab)
 }
