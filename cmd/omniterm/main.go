@@ -42,7 +42,9 @@ func NewTerminalApplication() *TerminalApplication {
 	}
 	tapp.Connect("activate", tapp.activate)
 	tapp.AddActions(map[string]func(){
-		"app.new-window": func() { tapp.NewWindow().Show() },
+		"app.new-window":  func() { tapp.NewWindow().Show() },
+		"app.preferences": func() {},
+		"app.about":       func() {},
 	})
 	return &tapp
 }
@@ -63,6 +65,9 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 		"win.new-serial-tab": func() { window.NewSerialTab() },
 		"win.new-ble-tab":    func() { window.NewBLETab() },
 		"win.fullscreen":     func() { window.FullscreenCB() },
+		"win.zoom-in":        func() { window.ZoomIn() },
+		"win.zoom-out":       func() { window.ZoomOut() },
+		"win.zoom-normal":    func() { window.ZoomNormal() },
 	})
 
 	// ***************************
@@ -113,32 +118,17 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	sizeSection.SetAttributeValue("display-hint", glib.NewVariantString("horizontal-buttons"))
 	mainMenu.InsertItem(0, sizeSection)
 
-	// window control
-	windowControl := gio.NewMenu()
-
-	// New window menu entry
-	mWindow := gio.NewMenuItem("New Window", "app.new-window")
-	windowControl.InsertItem(0, mWindow)
-
-	// Fullscreen menu entry
-	mFullScreen := gio.NewMenuItem("Fullscreen", "win.fullscreen")
-	windowControl.InsertItem(1, mFullScreen)
-
-	windowSection := gio.NewMenuItemSection("", windowControl)
-	mainMenu.InsertItem(1, windowSection)
-
-	// Preferences menu entry
-	mPref := gio.NewMenuItem("Preferences", "app.preferences")
-	mainMenu.InsertItem(2, mPref)
-
-	// About menu entry
-	mAbout := gio.NewMenuItem("About", "app.about")
-	mainMenu.InsertItem(3, mAbout)
-
 	// menu button
 	mainButton := gtk.NewMenuButton()
 	mainButton.SetVAlign(gtk.AlignCenter)
 	mainButton.SetIconName("open-menu-symbolic")
+	list := gtkutil.MenuPair([][2]string{
+		{"New Window", "app.new-window"},
+		{"Fullscreen", "win.fullscreen"},
+		{"Preferences", "app.preferences"},
+		{"About", "app.about"},
+	})
+	mainMenu.InsertSection(1, "", list)
 	mainButton.SetMenuModel(mainMenu)
 	window.HeaderBar.PackEnd(mainButton)
 
@@ -182,6 +172,15 @@ func main() {
 func (app *TerminalApplication) activate(self *gtk.Application) {
 	win := app.NewWindow()
 	win.Show()
+}
+
+func (window *TerminalWindow) ZoomIn() {
+}
+
+func (window *TerminalWindow) ZoomOut() {
+}
+
+func (window *TerminalWindow) ZoomNormal() {
 }
 
 func (window *TerminalWindow) FullscreenCB() {
