@@ -5,6 +5,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+	"github.com/diamondburned/gotkit/components/autoscroll"
 	"github.com/diamondburned/gotkit/gtkutil"
 )
 
@@ -32,7 +33,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	gtkutil.BindActionMap(window, map[string]func(){
 		"win.new-serial-tab": func() { window.NewSerialTab() },
 		"win.new-ble-tab":    func() { window.NewBLETab() },
-		"win.fullscreen":     func() { window.FullscreenCB() },
+		"win.fullscreen":     func() { window.FullscreenMode() },
 		"win.zoom-in":        func() { window.ZoomIn() },
 		"win.zoom-out":       func() { window.ZoomOut() },
 		"win.zoom-normal":    func() { window.ZoomNormal() },
@@ -138,7 +139,7 @@ func (window *TerminalWindow) ZoomOut() {
 func (window *TerminalWindow) ZoomNormal() {
 }
 
-func (window *TerminalWindow) FullscreenCB() {
+func (window *TerminalWindow) FullscreenMode() {
 	if window.IsFullscreen() {
 		window.Unfullscreen()
 	} else {
@@ -160,16 +161,24 @@ func (window *TerminalWindow) NewTab() {
 }
 
 func (window *TerminalWindow) NewSerialTab() {
-	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	content := gtk.NewBox(gtk.OrientationVertical, 0)
+	as := autoscroll.NewWindow()
+	as.SetVExpand(true)
+	tv := gtk.NewTextView()
+	tv.SetVExpand(true)
+	as.SetChild(tv)
+	content.Append(as)
 	tab := window.View.AddPage(content, &adw.TabPage{})
 	//tab.SetTitle("/dev/ttyUSB0")
 	ico := gio.NewThemedIcon("utilities-terminal-symbolic")
 	tab.SetIndicatorIcon(ico)
 	window.View.SetSelectedPage(tab)
+	tv.GrabFocus()
+
 }
 
 func (window *TerminalWindow) NewBLETab() {
-	content := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	content := gtk.NewBox(gtk.OrientationVertical, 0)
 	tab := window.View.AddPage(content, &adw.TabPage{})
 	//tab.SetTitle("/dev/ttyUSB0")
 	ico := gio.NewThemedIcon("bluetooth-symbolic")
