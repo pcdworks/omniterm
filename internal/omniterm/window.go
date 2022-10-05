@@ -26,7 +26,6 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 		View:           adw.NewTabView(),
 		TabActionGroup: &gio.NewSimpleActionGroup().ActionMap,
 	}
-
 	// *********************
 	// Window actions
 	// *********************
@@ -123,7 +122,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	box.Append(window.View)
 	window.SetContent(box)
 
-	window.SetDefaultSize(808, 550)
+	window.SetDefaultSize(714, 478)
 
 	window.NewTab()
 
@@ -164,6 +163,8 @@ func (window *TerminalWindow) NewSerialTab() {
 	content := gtk.NewBox(gtk.OrientationVertical, 0)
 	as := autoscroll.NewWindow()
 	as.SetVExpand(true)
+	as.SetMarginStart(2)
+	as.SetMarginEnd(2)
 	tv := gtk.NewTextView()
 	tv.SetVExpand(true)
 	as.SetChild(tv)
