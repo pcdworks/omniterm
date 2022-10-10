@@ -5,7 +5,6 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
-	"github.com/diamondburned/gotkit/components/autoscroll"
 	"github.com/diamondburned/gotkit/gtkutil"
 )
 
@@ -96,6 +95,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// search button
 	// **************************************
 	searchButton := gtk.NewButtonFromIconName("search-symbolic")
+	searchButton.ConnectClicked(func() {})
 	window.HeaderBar.PackEnd(searchButton)
 
 	// ***************************
@@ -122,6 +122,8 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 
 	window.SetDefaultSize(714, 478)
 
+	window.NewSerialTab()
+
 	return &window
 }
 
@@ -140,25 +142,6 @@ func (window *TerminalWindow) FullscreenMode() {
 	} else {
 		window.Fullscreen()
 	}
-}
-
-func (window *TerminalWindow) NewSerialTab() {
-	content := gtk.NewBox(gtk.OrientationVertical, 0)
-	as := autoscroll.NewWindow()
-	as.SetVExpand(true)
-	as.SetMarginStart(2)
-	as.SetMarginEnd(2)
-	tv := gtk.NewTextView()
-	tv.SetVExpand(true)
-	as.SetChild(tv)
-	content.Append(as)
-	tab := window.View.AddPage(content, &adw.TabPage{})
-	//tab.SetTitle("/dev/ttyUSB0")
-	ico := gio.NewThemedIcon("utilities-terminal-symbolic")
-	tab.SetIndicatorIcon(ico)
-	window.View.SetSelectedPage(tab)
-	tv.GrabFocus()
-
 }
 
 func (window *TerminalWindow) NewBLETab() {
