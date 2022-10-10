@@ -11,20 +11,18 @@ import (
 
 type TerminalWindow struct {
 	*adw.Window
-	View           *adw.TabView
-	TabBar         *adw.TabBar
-	TabActionGroup *gio.ActionMap
-	Page           *adw.TabPage
-	HeaderBar      *adw.HeaderBar
+	View      *adw.TabView
+	TabBar    *adw.TabBar
+	Page      *adw.TabPage
+	HeaderBar *adw.HeaderBar
 }
 
 func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	window := TerminalWindow{
-		Window:         adw.NewWindow(),
-		HeaderBar:      adw.NewHeaderBar(),
-		TabBar:         adw.NewTabBar(),
-		View:           adw.NewTabView(),
-		TabActionGroup: &gio.NewSimpleActionGroup().ActionMap,
+		Window:    adw.NewWindow(),
+		HeaderBar: adw.NewHeaderBar(),
+		TabBar:    adw.NewTabBar(),
+		View:      adw.NewTabView(),
 	}
 	// *********************
 	// Window actions
@@ -43,21 +41,15 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// ***************************
 	window.HeaderBar.SetShowEndTitleButtons(true)
 
-	// *************************************
-	// tab button
-	// *************************************
-	tabButton := adw.NewSplitButton()
-	tabButton.SetIconName("tab-new-symbolic")
-	tabButton.ConnectClicked(func() {
-		window.NewTab()
-	})
+	// New serial tab
+	serialTabButton := gtk.NewButtonFromIconName("utilities-terminal-symbolic")
+	window.HeaderBar.PackStart(serialTabButton)
+	serialTabButton.ConnectClicked(window.NewSerialTab)
 
-	// tab split menu
-	tabButton.SetMenuModel(gtkutil.MenuPair([][2]string{
-		{"New Serial", "win.new-serial-tab"},
-		{"New Bluetooth", "win.new-ble-tab"},
-	}))
-	window.HeaderBar.PackStart(tabButton)
+	// New BLE tab
+	bleTabButton := gtk.NewButtonFromIconName("bluetooth-symbolic")
+	window.HeaderBar.PackStart(bleTabButton)
+	bleTabButton.ConnectClicked(window.NewBLETab)
 
 	// *************************************
 	// main menu button
@@ -111,6 +103,12 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// ***************************
 	window.View.SetVExpand(true)
 	window.View.SetMenuModel(gtkutil.MenuPair([][2]string{
+		{"_Move to New Window", "tab.move-to-new-window"},
+		{"D_uplicate", "tab.duplicate"},
+		{"P_in Tab", "tab.pin"},
+		{"Unp_in Tab", "tab.unpin"},
+		{"Close Tabs to the _Left", "tab.close-before"},
+		{"Close Tabs to the _Right", "tab.close-after"},
 		{"Close", "tab.close"},
 	}))
 	window.SetApplication(app.Application.Application)
@@ -123,8 +121,6 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	window.SetContent(box)
 
 	window.SetDefaultSize(714, 478)
-
-	window.NewTab()
 
 	return &window
 }
@@ -143,19 +139,6 @@ func (window *TerminalWindow) FullscreenMode() {
 		window.Unfullscreen()
 	} else {
 		window.Fullscreen()
-	}
-}
-
-func (window *TerminalWindow) NewTab() {
-	pageType := "utilities-terminal-symbolic"
-	if window.View.SelectedPage() != nil {
-		pageType = window.View.SelectedPage().IndicatorIcon().String()
-	}
-
-	if pageType == "bluetooth-symbolic" {
-		window.NewBLETab()
-	} else if pageType == "utilities-terminal-symbolic" {
-		window.NewSerialTab()
 	}
 }
 
