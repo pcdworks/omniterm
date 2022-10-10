@@ -9,7 +9,6 @@ import (
 
 type TerminalApplication struct {
 	*app.Application
-	Windows []*TerminalWindow
 }
 
 func NewTerminalApplication() *TerminalApplication {
@@ -26,6 +25,6 @@ func NewTerminalApplication() *TerminalApplication {
 }
 
 func (app *TerminalApplication) activate(self *gtk.Application) {
-	win := app.NewWindow()
-	win.Show()
+	mainWin := app.NewWindow()
+	mainWin.Show()
 }
