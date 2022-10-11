@@ -95,7 +95,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// search button
 	// **************************************
 	searchButton := gtk.NewButtonFromIconName("search-symbolic")
-	searchButton.ConnectClicked(func() {})
+	searchButton.ConnectClicked(func() { window.SearchMode() })
 	window.HeaderBar.PackEnd(searchButton)
 
 	// ***************************
@@ -127,6 +127,17 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	return &window
 }
 
+func (window *TerminalWindow) SearchMode() {
+	page := window.View.SelectedPage()
+	if page != nil {
+		tab := page.Child().Cast().(*gtk.Box)
+		content := tab.LastChild().Cast().(*gtk.Box)
+		search := content.FirstChild().Cast().(*gtk.SearchBar)
+
+		search.SetSearchMode(!search.SearchMode())
+	}
+}
+
 func (window *TerminalWindow) ZoomIn() {
 }
 
@@ -142,13 +153,4 @@ func (window *TerminalWindow) FullscreenMode() {
 	} else {
 		window.Fullscreen()
 	}
-}
-
-func (window *TerminalWindow) NewBLETab() {
-	content := gtk.NewBox(gtk.OrientationVertical, 0)
-	tab := window.View.AddPage(content, &adw.TabPage{})
-	//tab.SetTitle("/dev/ttyUSB0")
-	ico := gio.NewThemedIcon("bluetooth-symbolic")
-	tab.SetIndicatorIcon(ico)
-	window.View.SetSelectedPage(tab)
 }
