@@ -1,6 +1,9 @@
 package omniterm
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
@@ -138,13 +141,44 @@ func (window *TerminalWindow) SearchMode() {
 	}
 }
 
+func (window *TerminalWindow) GetTextView() *gtk.TextView {
+	page := window.View.SelectedPage()
+	if page != nil {
+		tab := page.Child().Cast().(*gtk.Box)
+		content := tab.LastChild().Cast().(*gtk.Box)
+		win := content.LastChild().Cast().(*gtk.ScrolledWindow)
+		text := win.Child().Cast().(*gtk.TextView)
+
+		return text
+	} else {
+		return nil
+	}
+}
+
 func (window *TerminalWindow) ZoomIn() {
+	text := window.GetTextView()
+	size, _ := strconv.ParseInt(strings.Split(text.Name(), "-")[1], 10, 0)
+	if size < 400 {
+		size += 10
+		ssize := strconv.FormatInt(size, 10)
+		text.SetName("TerminalTab-" + ssize)
+	}
 }
 
 func (window *TerminalWindow) ZoomOut() {
+	text := window.GetTextView()
+	size, _ := strconv.ParseInt(strings.Split(text.Name(), "-")[1], 10, 0)
+	if size > 60 {
+		size -= 10
+		ssize := strconv.FormatInt(size, 10)
+		text.SetName("TerminalTab-" + ssize)
+
+	}
 }
 
 func (window *TerminalWindow) ZoomNormal() {
+	text := window.GetTextView()
+	text.SetName("TerminalTab-100")
 }
 
 func (window *TerminalWindow) FullscreenMode() {
