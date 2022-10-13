@@ -30,12 +30,12 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// Window actions
 	// *********************
 	gtkutil.BindActionMap(window, map[string]func(){
-		"win.new-serial-tab": func() { window.NewSerialTab() },
-		"win.new-ble-tab":    func() { window.NewBLETab() },
-		"win.fullscreen":     func() { window.FullscreenMode() },
-		"win.zoom-in":        func() { window.ZoomIn() },
-		"win.zoom-out":       func() { window.ZoomOut() },
-		"win.zoom-normal":    func() { window.ZoomNormal() },
+		"win.new-tab":     func() { window.NewTab() },
+		"win.tab-config":  func() { window.TabConfigMode() },
+		"win.fullscreen":  func() { window.FullscreenMode() },
+		"win.zoom-in":     func() { window.ZoomIn() },
+		"win.zoom-out":    func() { window.ZoomOut() },
+		"win.zoom-normal": func() { window.ZoomNormal() },
 	})
 
 	// ***************************
@@ -43,15 +43,23 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 	// ***************************
 	window.HeaderBar.SetShowEndTitleButtons(true)
 
-	// New serial tab
-	serialTabButton := gtk.NewButtonFromIconName("utilities-terminal-symbolic")
-	window.HeaderBar.PackStart(serialTabButton)
-	serialTabButton.ConnectClicked(window.NewSerialTab)
+	// New tab
+	tabButton := gtk.NewButtonFromIconName("tab-new-symbolic")
+	window.HeaderBar.PackStart(tabButton)
+	tabButton.ConnectClicked(window.NewTab)
 
-	// New BLE tab
-	bleTabButton := gtk.NewButtonFromIconName("bluetooth-symbolic")
-	window.HeaderBar.PackStart(bleTabButton)
-	bleTabButton.ConnectClicked(window.NewBLETab)
+	// tab preferences
+	prefButton := gtk.NewButtonFromIconName("document-edit-symbolic")
+	window.HeaderBar.PackStart(prefButton)
+	prefButton.ConnectClicked(window.TabConfigMode)
+
+	// zoButton := gtk.NewButtonFromIconName("zoom-out-symbolic")
+	// window.HeaderBar.PackStart(zoButton)
+	// zoButton.ConnectClicked(window.ZoomOut)
+
+	// ziButton := gtk.NewButtonFromIconName("zoom-in-symbolic")
+	// window.HeaderBar.PackStart(ziButton)
+	// ziButton.ConnectClicked(window.ZoomIn)
 
 	// *************************************
 	// main menu button
@@ -125,7 +133,7 @@ func (app *TerminalApplication) NewWindow() *TerminalWindow {
 
 	window.SetDefaultSize(714, 478)
 
-	window.NewSerialTab()
+	window.NewTab()
 
 	return &window
 }
@@ -141,7 +149,7 @@ func (window *TerminalWindow) SearchMode() {
 	}
 }
 
-func (window *TerminalWindow) GetTextView() *gtk.TextView {
+func (window *TerminalWindow) GetContentView() *gtk.TextView {
 	page := window.View.SelectedPage()
 	if page != nil {
 		tab := page.Child().Cast().(*gtk.Box)
@@ -155,8 +163,28 @@ func (window *TerminalWindow) GetTextView() *gtk.TextView {
 	}
 }
 
+func (window *TerminalWindow) TabConfigMode() {
+	page := window.View.SelectedPage()
+	if page != nil {
+		tab := page.Child().Cast().(*gtk.Box)
+		settings := tab.FirstChild().Cast().(*gtk.Box)
+		content := tab.LastChild().Cast().(*gtk.Box)
+		v := settings.Visible()
+
+		// make sure content and settings are not shown at the same time
+		if v {
+			settings.Hide()
+			content.Show()
+		} else {
+			content.Hide()
+			settings.Show()
+		}
+
+	}
+}
+
 func (window *TerminalWindow) ZoomIn() {
-	text := window.GetTextView()
+	text := window.GetContentView()
 	size, _ := strconv.ParseInt(strings.Split(text.Name(), "-")[1], 10, 0)
 	if size < 400 {
 		size += 10
@@ -166,7 +194,7 @@ func (window *TerminalWindow) ZoomIn() {
 }
 
 func (window *TerminalWindow) ZoomOut() {
-	text := window.GetTextView()
+	text := window.GetContentView()
 	size, _ := strconv.ParseInt(strings.Split(text.Name(), "-")[1], 10, 0)
 	if size > 60 {
 		size -= 10
@@ -177,7 +205,7 @@ func (window *TerminalWindow) ZoomOut() {
 }
 
 func (window *TerminalWindow) ZoomNormal() {
-	text := window.GetTextView()
+	text := window.GetContentView()
 	text.SetName("TerminalTab-100")
 }
 

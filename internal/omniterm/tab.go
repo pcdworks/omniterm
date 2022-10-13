@@ -7,13 +7,6 @@ import (
 	"github.com/diamondburned/gotkit/components/autoscroll"
 )
 
-type TerminalTab struct {
-	*gtk.Box
-	Content   *gtk.Box
-	SearchBar *gtk.SearchBar
-	Settings  *gtk.Box
-}
-
 const tabCSS = `
 #TerminalTab-50{
 	font-size: 8px;
@@ -125,29 +118,32 @@ const tabCSS = `
 }
 `
 
-func (window *TerminalWindow) NewBLETab() {
-	tt := gtk.NewBox(gtk.OrientationVertical, 0)
-
-	// connect tab
-	tab := window.View.AddPage(tt, nil)
-	ico := gio.NewThemedIcon("bluetooth-symbolic")
-	tab.SetIndicatorIcon(ico)
-	window.View.SetSelectedPage(tab)
-}
-
-func (window *TerminalWindow) NewSerialTab() {
+func (window *TerminalWindow) NewTab() {
 	tt := gtk.NewBox(gtk.OrientationVertical, 0)
 
 	// settings area
 	settings := gtk.NewBox(gtk.OrientationVertical, 0)
 	settings.SetVExpand(true)
+	ss := adw.NewViewStack()
+	ss.SetVExpand(true)
+	settings.Append(ss)
+	sw := adw.NewViewSwitcher()
+	st := adw.NewViewSwitcherBar()
+	sw.SetStack(ss)
+	st.SetStack(ss)
+	settings.Append(sw)
+	p1 := ss.AddTitled(gtk.NewBox(gtk.OrientationVertical, 0), "serial", "Serial")
+	p1.SetIconName("utilities-terminal-symbolic")
+	p2 := ss.AddTitled(gtk.NewBox(gtk.OrientationVertical, 0), "bluetooth", "Bluetooth")
+	p2.SetIconName("bluetooth-symbolic")
+
+	//settings.Hide()
 	tt.Append(settings)
-	settings.Append(gtk.NewButtonWithLabel("Settings"))
-	settings.Hide()
 
 	// content area
 	content := gtk.NewBox(gtk.OrientationVertical, 0)
 	content.SetVExpand(true)
+	content.Hide()
 	tt.Append(content)
 
 	// Search
