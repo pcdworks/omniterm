@@ -149,7 +149,7 @@ func (window *TerminalWindow) SearchMode() {
 	}
 }
 
-func (window *TerminalWindow) GetContentView() *gtk.TextView {
+func (window *TerminalWindow) GetTextView() *gtk.TextView {
 	page := window.View.SelectedPage()
 	if page != nil {
 		tab := page.Child().Cast().(*gtk.Box)
@@ -175,6 +175,7 @@ func (window *TerminalWindow) TabConfigMode() {
 		if v {
 			settings.Hide()
 			content.Show()
+			window.GetTextView().GrabFocus()
 		} else {
 			content.Hide()
 			settings.Show()
@@ -184,7 +185,7 @@ func (window *TerminalWindow) TabConfigMode() {
 }
 
 func (window *TerminalWindow) ZoomIn() {
-	text := window.GetContentView()
+	text := window.GetTextView()
 	size, _ := strconv.ParseInt(strings.Split(text.Name(), "-")[1], 10, 0)
 	if size < 400 {
 		size += 10
@@ -194,7 +195,7 @@ func (window *TerminalWindow) ZoomIn() {
 }
 
 func (window *TerminalWindow) ZoomOut() {
-	text := window.GetContentView()
+	text := window.GetTextView()
 	size, _ := strconv.ParseInt(strings.Split(text.Name(), "-")[1], 10, 0)
 	if size > 60 {
 		size -= 10
@@ -205,7 +206,7 @@ func (window *TerminalWindow) ZoomOut() {
 }
 
 func (window *TerminalWindow) ZoomNormal() {
-	text := window.GetContentView()
+	text := window.GetTextView()
 	text.SetName("TerminalTab-100")
 }
 
