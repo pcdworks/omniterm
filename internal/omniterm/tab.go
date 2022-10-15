@@ -132,8 +132,18 @@ func (window *TerminalWindow) NewTab() {
 	sw.SetStack(ss)
 	st.SetStack(ss)
 	settings.Append(sw)
-	p1 := ss.AddTitled(gtk.NewBox(gtk.OrientationVertical, 0), "serial", "Serial")
+	// serial tab settings
+	b1 := gtk.NewBox(gtk.OrientationVertical, 0)
+
+	b1.Append(NewPorts())
+	b1.Append(NewBaudSelector())
+	b1.Append(NewBits())
+	b1.Append(NewStopBits())
+	b1.Append(NewParity())
+	p1 := ss.AddTitled(b1, "serial", "Serial")
 	p1.SetIconName("utilities-terminal-symbolic")
+
+	// ble tab settings
 	p2 := ss.AddTitled(gtk.NewBox(gtk.OrientationVertical, 0), "bluetooth", "Bluetooth")
 	p2.SetIconName("bluetooth-symbolic")
 

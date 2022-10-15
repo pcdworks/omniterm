@@ -16,7 +16,6 @@ import (
 	"pcdworks.com/omniterm/internal/omniterm"
 )
 
-
 func main() {
 	tapp := omniterm.NewTerminalApplication()
 
